@@ -6,7 +6,7 @@ import string
 from nltk.stem import WordNetLemmatizer
 from nltk.stem.porter import *
 from nltk.corpus import stopwords
-
+from sklearn import naive_bayes
 
 
 def getTrainData():
@@ -72,7 +72,7 @@ def cleanup2(data):
 			text3.append(j)
 
 		data[i]=text3
-				
+
 	return data
 
 def cleanup(data):
@@ -122,7 +122,7 @@ def cleanup(data):
 				text4.append(j)
 
 		data[i]=text4
-				
+
 	return data
 
 def genVoc(trainingSet,categories, priors):
@@ -141,12 +141,12 @@ def genVoc(trainingSet,categories, priors):
 
 	for key in Voc.keys():
 		for cat in categories.keys():
-			Voc[key][categories[cat]]=(Voc[key][categories[cat]]+1)/(priors[cat]+2)			
+			Voc[key][categories[cat]]=(Voc[key][categories[cat]]+1)/(priors[cat]+2)
 
 	return Voc
 
 def getPriors(trainSet, categories):
-	
+
 	priors={}
 	for i in categories.keys():
 		priors[i]=0
@@ -183,7 +183,7 @@ def preTreatment(Voc):
 	return newVoc
 
 def preTreatment2(Voc):
-	
+
 	newVoc={}
 	var=[]
 
@@ -217,7 +217,7 @@ def makePredictions(Voc, priors, testSet, categories):
 	 		scoreDoc[categories[key]]+=math.log(priors[key])
 
 	 	pred=None
-	 	
+
 	 	ind=scoreDoc.index(max(scoreDoc))
 	 	for cat in categories.keys():
 	 		if ind == categories[cat]:
@@ -273,20 +273,25 @@ dataSet=[cleaned, brute[0][1]]
 trainSet, testSet=split_dataset(dataSet)
 
 priors=getPriors(trainSet, categories)
-Voc=genVoc(trainSet, categories, priors)
+#Voc=genVoc(trainSet, categories, priors)
 
 for key in priors.keys():
 	priors[key]=priors[key]/len(trainSet)
 
-Voc=preTreatment(Voc)
-print(len(Voc.keys()))
+#Voc=preTreatment(Voc)
+#print(len(Voc.keys()))
 
 """temp=getTestData()
 abstractTest=temp[0]
 cleanedTest=cleanup(abstractTest)
 testSet=[cleanedTest]"""
+print("here")
+trainData=pandas.read_csv("train.csv")
+data=[trainData["Abstract"], trainData["Category"]]
+Clf = naive_bayes.MultinomialNB()
+Clf.fit(data[0],data[1])
+preds = Clf.predict(testSet[0])
 
-
-preds=makePredictions(Voc, priors, testSet, categories)
+#preds=makePredictions(Voc, priors, testSet, categories)
 print(computeGood(testSet, preds))
 #predictionsToCSV(preds)
