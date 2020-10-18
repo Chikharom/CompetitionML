@@ -1,6 +1,12 @@
 import pandas
 import numpy as np
 import math
+import string
+
+from nltk.stem import WordNetLemmatizer
+from nltk.stem.porter import *
+from nltk.corpus import stopwords
+
 
 
 def getTrainData():
@@ -21,7 +27,7 @@ def getTestData():
 
 
 
-def cleanup(data):
+def cleanup2(data):
 
 	Voc = {}
 	for i in range(len(data)):
@@ -69,6 +75,56 @@ def cleanup(data):
 				
 	return data
 
+def cleanup(data):
+
+	newData=[]
+	lem=WordNetLemmatizer()
+	stem=PorterStemmer()
+	for i in range(len(data)):
+		text = data[i].split(" ")
+		text1=[]
+		test="test, test"
+		for j in text:
+			if "\n" in j:
+				temp = j.split("\n")
+				for g in temp:
+					text1.append(g)
+			else:
+				text1.append(j)
+
+		text2=[]
+		for j in text1:
+			if "-" in j:
+				temp = j.split("-")
+				for g in temp:
+					text2.append(g)
+			else:
+				text2.append(j)
+
+		"""text3=[]
+		for j in text2:
+			if "$" not in j and "/" not in j and "}" not in j and "{" not in j:
+				text3.append(j)"""
+
+		text3=[]
+
+		for j in text2:
+				#carToClean=["$", "(", ")", "{", "}", "\\", "/", "[", "]", ":", ";", ",", "."]
+			carToClean=string.punctuation
+			for car in carToClean:
+				j=j.replace(car, "")
+			text3.append(j)
+
+
+		text4=[]
+		for j in text3:
+			if j not in stopwords.words('english'):
+				text4.append(j)
+
+		data[i]=text4
+				
+	return data
+
 def genVoc(trainingSet,categories, priors):
 	Voc={}
 	for i in range(len(trainingSet[0])):
@@ -81,7 +137,7 @@ def genVoc(trainingSet,categories, priors):
 					Voc[word] = [0]*15
 					Voc[word][categories[trainingSet[1][i]]] = 1
 				else :
-					Voc[word][categories[trainingSet[1][i]]] += 1	
+					Voc[word][categories[trainingSet[1][i]]] += 1
 
 	for key in Voc.keys():
 		for cat in categories.keys():
@@ -122,7 +178,7 @@ def split_dataset(dataSet):
 def preTreatment(Voc):
 	newVoc={}
 	for i in Voc.keys():
-		if len(i)>5:
+		if len(i)>0:
 			newVoc[i]=Voc[i]
 	return newVoc
 
@@ -135,12 +191,13 @@ def preTreatment2(Voc):
 		probs=np.array(Voc[key])
 		var.append(np.var(probs))
 
-	median=np.median(var)
+	median=np.mean(var)
+	std=np.std(var)
 	#median=harmonicMean(var)
 
 	for key in Voc.keys():
 		probs=np.array(Voc[key])
-		if np.var(probs)>0:
+		if np.var(probs)<median+2.5*std and len(key)>0:
 			newVoc[key]=Voc[key]
 	return newVoc
 
@@ -193,10 +250,28 @@ brute=getTrainData()
 categories=brute[1]
 abstract=brute[0][0]
 cleaned=cleanup(abstract)
-dataSet=[cleaned, brute[0][1]]
-trainSet=dataSet
 
-#trainSet, testSet=split_dataset(dataSet)
+
+
+"""answers =  brute[0][1]
+answers1= []
+cleaned2=[]
+for i in range(len(answers)):
+	answers1.append(answers[i])
+	answers1.append(answers[i])
+	text1=cleaned[i][:int(len(cleaned[i])/2)]
+	text2=cleaned[i][int(len(cleaned[i])/2):]
+	cleaned2.append(text1)
+	cleaned2.append(text2)
+dataSet=[cleaned2, answers1]"""
+
+dataSet=[cleaned, brute[0][1]]
+
+
+#trainSet=dataSet
+
+trainSet, testSet=split_dataset(dataSet)
+
 priors=getPriors(trainSet, categories)
 Voc=genVoc(trainSet, categories, priors)
 
@@ -204,14 +279,14 @@ for key in priors.keys():
 	priors[key]=priors[key]/len(trainSet)
 
 Voc=preTreatment(Voc)
-#print(Voc)
+print(len(Voc.keys()))
 
-temp=getTestData()
+"""temp=getTestData()
 abstractTest=temp[0]
 cleanedTest=cleanup(abstractTest)
-testSet=[cleanedTest]
+testSet=[cleanedTest]"""
 
 
 preds=makePredictions(Voc, priors, testSet, categories)
-#print(computeGood(testSet, preds))
-predictionsToCSV(preds)
+print(computeGood(testSet, preds))
+#predictionsToCSV(preds)
