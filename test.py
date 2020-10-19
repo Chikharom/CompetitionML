@@ -1,4 +1,5 @@
-test="$$def$$//"
+from heapq import nlargest 
 
-print(test.replace('$', ''))
-print(test)
+test={"a":1, "b":2, "c":4, "d":9}
+
+print(nlargest(2, test, key=test.get))

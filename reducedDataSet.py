@@ -7,10 +7,12 @@ import string
 from nltk.corpus import stopwords 
 from heapq import nlargest
 
-class DataSet:
+class reducedDataSet:
 	
-	def __init__(self,seed, mode=0):
+	def __init__(self,seed, N, catDict, mode=0):
+		self.categoriesDict=catDict
 		self.seed=seed%5
+		self.N=N
 		self.categories=None
 		self.catCount=None
 		self.Voc=None
@@ -28,6 +30,7 @@ class DataSet:
 
 		brute=self.getTrainData()
 		categories=brute[1]
+		print(categories)
 		abstractSet=brute[0]
 		cleaned=self.format(abstractSet)
 		dataSet=cleaned
@@ -48,9 +51,13 @@ class DataSet:
 
 		self.matrix=self.genMatrix(trainSet, Voc, categories)
 
-		#self.Voc, self.matrix=self.preTreatment(Voc, self.matrix)
+		self.Voc=self.getNmax(self.N)
+		print(len(self.Voc))
+
+		self.matrix=self.genMatrix(trainSet, self.Voc, self.categories)
 
 		self.catCount=priors
+
 
 	def reduceWords(self, n):
 		newVoc=self.getNmax(n)
@@ -61,11 +68,11 @@ class DataSet:
 
 	def getTrainData(self):
 		trainData=pandas.read_csv("train.csv")
-		data=[trainData["Abstract"], trainData["Category"]]
+		data=[trainData["Abstract"],trainData["Category"]]
 		categories={}
 		for i in data[1]:
-			if i not in categories:
-				categories[i]=len(categories)
+			if self.categoriesDict[i] not in categories:
+				categories[self.categoriesDict[i]]=len(categories)
 
 		return (data,categories)
 
@@ -232,7 +239,7 @@ class DataSet:
 		priors=[0]*len(categories)
 
 		for i in range(len(trainSet)):
-			priors[categories[trainSet[i][1]]]+=1
+			priors[categories[self.categoriesDict[trainSet[i][1]]]]+=1
 		return priors
 
 	def genVector(self,abstract, Voc):
@@ -249,7 +256,7 @@ class DataSet:
 
 		for i in range(len(trainSet)):
 			text=trainSet[i][0]
-			cat=categories[trainSet[i][1]]
+			cat=categories[self.categoriesDict[trainSet[i][1]]]
 			vector=self.genVector(text, Voc)
 			entry=[vector, cat]
 			dataMatrix.append(entry)
@@ -284,7 +291,7 @@ class DataSet:
 		return temp/len(predictions)
 
 	def compare(self, label, prediction):
-		if prediction==label:
+		if prediction==self.categoriesDict[label]:
 			return True
 		else:
 			return False

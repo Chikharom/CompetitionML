@@ -30,9 +30,10 @@ class PerceptronBasic:
 		return pred
 
 
-	def train(self):
-
-		for pair in self.dataSet.matrix:
+	def train(self, itter):
+		i=0
+		while i<itter:
+			pair=self.dataSet.matrix[i%(len(self.dataSet.matrix))]
 			abstract=pair[0]
 			category=pair[1]
 			#print(category)
@@ -40,6 +41,9 @@ class PerceptronBasic:
 			if pred!=category:
 				self.W[category]=np.add(self.W[category], abstract)
 				self.bias[category]+=1
+				self.W[pred]=np.subtract(self.W[pred], abstract)
+				self.bias[pred]-=1
+			i+=1
 
 
 	def predictOnTest(self):
