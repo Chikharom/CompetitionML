@@ -2,6 +2,9 @@ import pandas
 import numpy as np
 import math
 import string
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
@@ -28,7 +31,8 @@ def split(data,cat):
             test_data.append(data[i])
             test_labels.append(cat[i])
     return train_data , train_labels,test_data,test_labels
-Clf = naive_bayes.BernoulliNB(alpha=0.4)
+#Clf = naive_bayes.BernoulliNB(alpha=0.4)
+Clf = SVC()
 count_vect = CountVectorizer()
 Vectors = count_vect.fit_transform(data[0])
 X_train = Vectors[:6000]

@@ -111,8 +111,11 @@ def cleanup(data):
 		for j in text2:
 				#carToClean=["$", "(", ")", "{", "}", "\\", "/", "[", "]", ":", ";", ",", "."]
 			carToClean=string.punctuation
+			numbers = ["0"."1","2"."3","4","5","6","7","8","9"]
 			for car in carToClean:
 				j=j.replace(car, "")
+			for n in numbers:
+				j=j.replace(n,"")
 			text3.append(j)
 
 
