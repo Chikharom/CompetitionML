@@ -14,8 +14,7 @@ from sklearn import naive_bayes
 vectorizer = TfidfVectorizer()
 # the following will be the training data
 trainData=pandas.read_csv("train.csv")
-TestData = pandas.read_csv("test.csv")
-data=[trainData["Abstract"]+TestData["Abstract"], np.array(trainData["Category"])]
+data=[trainData["Abstract"], np.array(trainData["Category"])]
 def split(data,cat):
     train_data = []
     train_labels = []
@@ -29,24 +28,20 @@ def split(data,cat):
             test_data.append(data[i])
             test_labels.append(cat[i])
     return train_data , train_labels,test_data,test_labels
-Clf = naive_bayes.MultinomialNB()
-text = np.append(np.array(trainData["Abstract"]),np.array(TestData["Abstract"]))
+Clf = naive_bayes.BernoulliNB(alpha=0.4)
 count_vect = CountVectorizer()
-Vectors = count_vect.fit_transform(text)
-X_train = Vectors[:7500]
-X_test = Vectors[7500:]
-Y_train = data[1]
+Vectors = count_vect.fit_transform(data[0])
+X_train = Vectors[:6000]
+X_test = Vectors[6000:]
+Y_train = data[1][:6000]
+Y_test = data[1][6000:]
 #X_train_counts = count_vect.fit_transform(a)
 Clf.fit(X_train,Y_train)
 preds =Clf.predict(X_test)
-def predictionsToCSV(preds):
-	ids=[]
-	category=[]
-	for i in range(len(preds)):
-		ids.append(i)
-		category.append(preds[i])
-	dik={}
-	dik["Category"]=preds
-	frame=pandas.DataFrame.from_dict(dik)
-	frame.to_csv("predictions", header=True)
-predictionsToCSV(preds)
+d = Y_test
+#X_test_counts = count_vect.fit_transform(c)
+sum = 0
+for i in range(len(d)):
+    if preds[i] == d[i]:
+        sum += 1
+print(sum/len(d))
