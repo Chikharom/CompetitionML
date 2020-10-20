@@ -3,6 +3,7 @@ import numpy as np
 import math
 import string
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.datasets import fetch_20newsgroups
@@ -17,7 +18,8 @@ from sklearn import naive_bayes
 vectorizer = TfidfVectorizer()
 # the following will be the training data
 trainData=pandas.read_csv("train.csv")
-data=[trainData["Abstract"], np.array(trainData["Category"])]
+testData = pandas.read_csv("test.csv")
+data=[np.append(trainData["Abstract"], np.array(trainData["Category"])]
 def split(data,cat):
     train_data = []
     train_labels = []
@@ -31,21 +33,24 @@ def split(data,cat):
             test_data.append(data[i])
             test_labels.append(cat[i])
     return train_data , train_labels,test_data,test_labels
-#Clf = naive_bayes.BernoulliNB(alpha=0.4)
-Clf = SVC()
-count_vect = CountVectorizer()
+#Clf = naiTfidfVectorizerve_bayes.BernoulliNB(alpha=0.4)
+Clf = MultinomialNB(alpha=0.1)
+count_vect = TfidfVectorizer()
 Vectors = count_vect.fit_transform(data[0])
-X_train = Vectors[:6000]
-X_test = Vectors[6000:]
-Y_train = data[1][:6000]
-Y_test = data[1][6000:]
+X_train = Vectors[:7500]
+X_test = Vectors[7500:]
+Y_train = data[1]
 #X_train_counts = count_vect.fit_transform(a)
 Clf.fit(X_train,Y_train)
 preds =Clf.predict(X_test)
-d = Y_test
-#X_test_counts = count_vect.fit_transform(c)
-sum = 0
-for i in range(len(d)):
-    if preds[i] == d[i]:
-        sum += 1
-print(sum/len(d))
+def predictionsToCSV(preds):
+	ids=[]
+	category=[]
+	for i in range(len(preds)):
+		ids.append(i)
+		category.append(preds[i])
+	dik={}
+	dik["Category"]=preds
+	frame=pandas.DataFrame.from_dict(dik)
+	frame.to_csv("predictions", header=True)
+predictionsToCSV(preds)
